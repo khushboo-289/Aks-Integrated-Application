@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AZURE_CREDENTIALS_ID = 'azure-aks-service-principal' // Jenkins credentials ID (Service Principal)
-        RESOURCE_GROUP = 'rg-jenkins'
+        RESOURCE_GROUP = 'rg-integrated-aks'
         ACR_NAME = 'khushacr989397'
         ACR_LOGIN_SERVER = "${ACR_NAME}.azurecr.io"
         IMAGE_NAME = 'dotnet-webapi'
@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'master', url: 'https://github.com/khushboo-289/web-application.git'
+                git branch: 'master', url: 'https://github.com/khushboo-289/Aks-Integrated-Application.git'
             }
         }
 
@@ -22,8 +22,9 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
                     sh '''
                     az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                    cd terraform
+                    cd terraform44
                     terraform init
+                    terraform plan
                     terraform apply -auto-approve
                     '''
                 }
