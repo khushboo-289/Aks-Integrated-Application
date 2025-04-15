@@ -1,7 +1,18 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">=3.0.0"
+    }
+  }
+  required_version = ">=1.0.0"
+}
+
 provider "azurerm" {
   features {}
   resource_provider_registrations = "none"
   subscription_id                 = "774a4fba-46bd-45c3-baae-c6b6ee82f8c7"
+  tenant_id                       = "1567c36f-2746-4afb-a8af-5df0b9f4f92b" 
 }
 
 resource "azurerm_resource_group" "main" {
@@ -15,6 +26,10 @@ resource "azurerm_container_registry" "acr" {
   location            = azurerm_resource_group.main.location
   sku                 = "Basic"
   admin_enabled       = true
+
+  tags = {
+    environment = "dev"
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "aks" {
@@ -52,10 +67,15 @@ data "azurerm_kubernetes_cluster" "aks" {
   depends_on          = [azurerm_kubernetes_cluster.aks]
 }
 
-# 🔐 AcrPull role assignment for AKS kubelet identity
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
   principal_id         = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+
+  # Avoids recreation if principal_id already has role
+  lifecycle {
+    ignore_changes = [principal_id]
+  }
 }
+
 
