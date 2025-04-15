@@ -1,7 +1,7 @@
 provider "azurerm" {
   features {}
   resource_provider_registrations = "none"
-  subscription_id = "774a4fba-46bd-45c3-baae-c6b6ee82f8c7"
+  subscription_id                 = "774a4fba-46bd-45c3-baae-c6b6ee82f8c7"
 }
 
 resource "azurerm_resource_group" "main" {
@@ -27,7 +27,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     name       = "default"
     node_count = var.node_count
     vm_size    = var.node_size
-    
   }
 
   identity {
@@ -46,8 +45,17 @@ resource "azurerm_kubernetes_cluster" "aks" {
   depends_on = [azurerm_container_registry.acr]
 }
 
+# Wait until AKS identity is fully available using a data source
+data "azurerm_kubernetes_cluster" "aks" {
+  name                = azurerm_kubernetes_cluster.aks.name
+  resource_group_name = azurerm_resource_group.main.name
+  depends_on          = [azurerm_kubernetes_cluster.aks]
+}
+
+# 🔐 AcrPull role assignment for AKS kubelet identity
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
+  principal_id         = data.azurerm_kubernetes_cluster.aks.kubelet_identity[0].object_id
 }
+
