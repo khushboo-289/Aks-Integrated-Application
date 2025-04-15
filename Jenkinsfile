@@ -9,7 +9,7 @@ pipeline {
         IMAGE_TAG = 'latest'
         RESOURCE_GROUP = 'rg-integrated-aks'
         AKS_CLUSTER = 'aksweb1221'
-        TF_WORKING_DIR = '.'
+        TF_WORKING_DIR = 'terraform44'
     }
 
     stages {
@@ -36,10 +36,11 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
                     bat """
                     echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-                    cd terraform44
+                    cd %TF_WORKING_DIR%
                     echo "Initializing Terraform..."
                     terraform init
                     """
+
                 }
             }
         }
@@ -49,9 +50,10 @@ pipeline {
         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-            cd terraform44
+            cd %TF_WORKING_DIR%
             terraform plan -out=tfplan
             """
+
         }
     }
 }
@@ -62,8 +64,11 @@ pipeline {
         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-            bat "terraform -chdir=terraform44 apply tfplan"
+            cd %TF_WORKING_DIR%
+            echo "Applying Terraform Plan..."
+            terraform apply -auto-approve tfplan
             """
+
         }
     }
 }
