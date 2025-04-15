@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AZURE_CREDENTIALS_ID = 'azure-aks-service-principal' // Jenkins credentials ID (Service Principal)
-        RESOURCE_GROUP = 'rg-integrated-aks'
+        RESOURCE_GROUP = 'rg-integrated-aks' 
         ACR_NAME = 'khushacr989397'
         ACR_LOGIN_SERVER = "${ACR_NAME}.azurecr.io"
         IMAGE_NAME = 'dotnet-webapi'
@@ -20,33 +20,26 @@ pipeline {
         stage('Terraform Init & Apply') {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
-                    sh '''
-                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                    cd terraform44
-                    terraform init
-                    terraform plan
-                    terraform apply -auto-approve
-                    '''
+                    bat 'az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%'
+                    bat 'cd terraform44 && terraform init'
+                    bat 'cd terraform44 && terraform plan'
+                    bat 'cd terraform44 && terraform apply -auto-approve'
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker build -t ${ACR_LOGIN_SERVER}/${IMAGE_NAME}:latest .
-                '''
+                bat 'docker build -t %ACR_LOGIN_SERVER%/%IMAGE_NAME%:latest .'
             }
         }
 
         stage('Push Docker Image to ACR') {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
-                    sh '''
-                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                    az acr login --name ${ACR_NAME}
-                    docker push ${ACR_LOGIN_SERVER}/${IMAGE_NAME}:latest
-                    '''
+                    bat 'az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%'
+                    bat 'az acr login --name %ACR_NAME%'
+                    bat 'docker push %ACR_LOGIN_SERVER%/%IMAGE_NAME%:latest'
                 }
             }
         }
@@ -54,11 +47,9 @@ pipeline {
         stage('Deploy to AKS') {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
-                    sh '''
-                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
-                    az aks get-credentials --resource-group ${RESOURCE_GROUP} --name ${AKS_CLUSTER}
-                    kubectl apply -f k8s/deployment.yaml
-                    '''
+                    bat 'az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%'
+                    bat 'az aks get-credentials --resource-group %RESOURCE_GROUP% --name %AKS_CLUSTER%'
+                    bat 'kubectl apply -f k8s\\deployment.yaml'
                 }
             }
         }
@@ -73,3 +64,4 @@ pipeline {
         }
     }
 }
+
