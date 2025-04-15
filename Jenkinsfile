@@ -21,6 +21,7 @@ pipeline {
             steps {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
                     bat 'az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%'
+                    bat 'terraform -version'
                     bat 'cd terraform44 && terraform init'
                     bat 'cd terraform44 && terraform plan'
                     bat 'cd terraform44 && terraform apply -auto-approve'
