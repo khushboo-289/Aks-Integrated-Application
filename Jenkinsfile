@@ -36,7 +36,7 @@ pipeline {
                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
                     bat """
                     echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-                    cd %TF_WORKING_DIR%
+                    cd terraform44
                     echo "Initializing Terraform..."
                     terraform init
                     """
@@ -49,7 +49,7 @@ pipeline {
         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-            cd %TF_WORKING_DIR%
+            cd terraform44
             terraform plan -out=tfplan
             """
         }
@@ -62,7 +62,7 @@ pipeline {
         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-            cd %TF_WORKING_DIR%
+            cd terraform44
             echo "Applying Terraform Plan..."
             terraform apply -auto-approve tfplan
             """
