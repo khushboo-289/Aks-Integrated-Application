@@ -62,9 +62,7 @@ pipeline {
         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
-            cd terraform44
-            echo "Applying Terraform Plan..."
-            terraform apply -auto-approve tfplan
+            bat "terraform -chdir=terraform44 apply -auto-approve tfplan"
             """
         }
     }
